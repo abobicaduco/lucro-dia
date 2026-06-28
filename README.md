@@ -15,6 +15,8 @@ Feito em Flutter, funciona em Android **7.0+** (aparelhos antigos e recentes).
 - **Até hoje**: quanto vendeu, quanto gastou e o saldo até a data atual.
 - **Histórico**: lista de todos os registros do mês. Toque para editar, segure para apagar.
 - **Navegação por meses**: veja o resultado de qualquer mês.
+- **Tela Sobre**: explicação do app, privacidade, **doações via Pix** (chave, copia e cola
+  e QR Code gerados no próprio aparelho) e **contato** por e-mail para sugestões/ajuda.
 
 ## Privacidade — dados 100% locais
 

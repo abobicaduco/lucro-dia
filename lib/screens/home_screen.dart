@@ -125,7 +125,7 @@ class _HomeScreenState extends State<HomeScreen> {
         title: const Text('Lucro do Dia'),
         actions: [
           IconButton(
-            tooltip: 'Privacidade',
+            tooltip: 'Sobre',
             onPressed: () {
               Navigator.push(
                 context,
