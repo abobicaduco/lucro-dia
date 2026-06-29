@@ -27,17 +27,30 @@ Todos os registros ficam **apenas no celular** do usuário, num banco SQLite
 A **única** conexão com a internet é opcional: verificar se existe uma versão nova do app
 (somente número de versão + link do APK). Nada do usuário é transmitido.
 
-## Atualizações
+## Atualizações (OTA via GitHub Releases)
 
-Ao abrir com internet, o app consulta um arquivo de versão público:
+Ao abrir com internet, o app consulta a API pública de releases do GitHub
+(`/repos/abobicaduco/lucro-dia/releases/latest`). Se a última versão publicada for mais
+nova que a instalada, o usuário vê um diálogo e **escolhe** se quer atualizar ("Atualizar"
+baixa o APK; "Agora não" adia aquela versão). O app escolhe automaticamente o APK que
+combina com a arquitetura do aparelho (arm64-v8a, armeabi-v7a, x86_64) e, se não achar,
+usa o universal.
 
-```
-https://abobiferramentas.com/api/lucro-dia-version.json
-```
+### Como publicar uma nova versão
 
-Modelo em [`version-check/lucro-dia-version.json`](version-check/lucro-dia-version.json).
-Quando uma versão nova é publicada (com `version_code` maior), o usuário vê um diálogo e
-**escolhe** se quer atualizar ou não ("Atualizar" abre o link do APK; "Agora não" adia).
+1. Suba `version:` em [`pubspec.yaml`](pubspec.yaml) (ex.: `1.0.1+2`).
+2. Crie e envie a tag correspondente:
+   ```bash
+   git tag v1.0.1 && git push origin v1.0.1
+   ```
+3. O workflow [`.github/workflows/release.yml`](.github/workflows/release.yml) compila os
+   APKs (arm64-v8a, armeabi-v7a, x86_64 e universal), **assina com a chave de release** e
+   cria a Release no GitHub com os arquivos anexados.
+4. Pronto: quem tem o app instalado recebe o aviso de atualização ao abrir com internet.
+
+> **Assinatura:** todos os APKs são assinados com o mesmo keystore (guardado fora do repo,
+> nos secrets do GitHub `KEYSTORE_BASE64` / `KEYSTORE_PASSWORD` / `KEY_ALIAS`). Isso é o que
+> permite a atualização instalar por cima da versão anterior.
 
 ## Build
 

@@ -42,4 +42,9 @@ app.*.map.json
 # Android Studio will place build artifacts here
 /android/app/debug
 /android/app/profile
+
+# Signing — NUNCA versionar (cópia em G:\My Drive\chaves-keystores\abobi-apps)
+/android/key.properties
+*.jks
+*.keystore
 /android/app/release

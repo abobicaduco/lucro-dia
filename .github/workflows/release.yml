@@ -1,0 +1,100 @@
+name: Release APKs
+
+# Dispara ao enviar uma tag de versão (ex: v1.0.0) ou manualmente.
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag da release (ex: v1.0.1)'
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Resolve version tag
+        id: ver
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            TAG="${{ github.event.inputs.tag }}"
+          else
+            TAG="${GITHUB_REF#refs/tags/}"
+          fi
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "version=${TAG#v}" >> "$GITHUB_OUTPUT"
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Restore signing keystore
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+        run: |
+          echo "$KEYSTORE_BASE64" | base64 -d > android/app/lucro_dia-release.jks
+          cat > android/key.properties <<EOF
+          storePassword=$KEYSTORE_PASSWORD
+          keyPassword=$KEYSTORE_PASSWORD
+          keyAlias=$KEY_ALIAS
+          storeFile=lucro_dia-release.jks
+          EOF
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Build split APKs (arm64-v8a, armeabi-v7a, x86_64)
+        run: flutter build apk --release --split-per-abi
+
+      - name: Build universal APK
+        run: flutter build apk --release
+
+      - name: Collect & rename APKs
+        run: |
+          V="${{ steps.ver.outputs.version }}"
+          OUT=build/app/outputs/flutter-apk
+          mkdir -p dist
+          cp "$OUT/app-arm64-v8a-release.apk"   "dist/lucro-dia-$V-arm64-v8a.apk"
+          cp "$OUT/app-armeabi-v7a-release.apk" "dist/lucro-dia-$V-armeabi-v7a.apk"
+          cp "$OUT/app-x86_64-release.apk"      "dist/lucro-dia-$V-x86_64.apk"
+          cp "$OUT/app-release.apk"             "dist/lucro-dia-$V-universal.apk"
+          ls -la dist
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.ver.outputs.tag }}
+          name: Lucro do Dia ${{ steps.ver.outputs.tag }}
+          generate_release_notes: true
+          body: |
+            Atualização do **Lucro do Dia**.
+
+            Baixe o APK para o seu aparelho:
+            - **arm64-v8a** — a maioria dos celulares atuais
+            - **armeabi-v7a** — celulares mais antigos (32 bits)
+            - **x86_64** — emuladores / aparelhos Intel
+            - **universal** — funciona em qualquer aparelho (arquivo maior)
+
+            O próprio app avisa quando há versão nova e baixa o APK certo para o seu celular.
+            Seus dados continuam só no seu telefone.
+          files: dist/*.apk
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
