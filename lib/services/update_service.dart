@@ -44,14 +44,14 @@ class UpdateService {
 
       final json = jsonDecode(response.body) as Map<String, dynamic>;
       final tag = (json['tag_name'] as String?) ?? '';
-      final remoteVersion = _normalizeVersion(tag);
+      final remoteVersion = normalizeVersion(tag);
       if (remoteVersion.isEmpty) return null;
 
       final info = await PackageInfo.fromPlatform();
-      final currentVersion = _normalizeVersion(info.version);
+      final currentVersion = normalizeVersion(info.version);
 
       // Só oferece se a versão publicada for realmente mais nova.
-      if (_compareVersions(remoteVersion, currentVersion) <= 0) return null;
+      if (compareVersions(remoteVersion, currentVersion) <= 0) return null;
 
       // Usuário pediu para pular esta versão?
       final prefs = await SharedPreferences.getInstance();
@@ -104,11 +104,11 @@ class UpdateService {
   }
 
   /// Mantém só dígitos e pontos: "v1.2.0" -> "1.2.0".
-  String _normalizeVersion(String v) =>
+  static String normalizeVersion(String v) =>
       v.replaceAll(RegExp(r'[^0-9.]'), '').trim();
 
   /// Compara "1.2.0" vs "1.10.3" numericamente. >0 se a > b.
-  int _compareVersions(String a, String b) {
+  static int compareVersions(String a, String b) {
     final pa = a.split('.').map((e) => int.tryParse(e) ?? 0).toList();
     final pb = b.split('.').map((e) => int.tryParse(e) ?? 0).toList();
     final len = pa.length > pb.length ? pa.length : pb.length;
