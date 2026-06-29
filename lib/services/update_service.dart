@@ -55,7 +55,7 @@ class UpdateService {
 
       // Lembrete no máximo uma vez por dia — mas todo dia, até a pessoa
       // atualizar. Se já mostramos hoje para esta versão, não repete.
-      if (await _alreadyPromptedToday(remoteVersion)) return null;
+      if (await alreadyPromptedToday(remoteVersion)) return null;
 
       final assets = (json['assets'] as List<dynamic>? ?? [])
           .cast<Map<String, dynamic>>();
@@ -121,14 +121,14 @@ class UpdateService {
   }
 
   /// Já avisamos hoje sobre esta versão?
-  Future<bool> _alreadyPromptedToday(String version) async {
+  Future<bool> alreadyPromptedToday(String version) async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString('update_prompt_date') == _todayKey() &&
         prefs.getString('update_prompt_version') == version;
   }
 
   /// Registra que o aviso desta versão foi mostrado hoje.
-  Future<void> _markPromptedToday(String version) async {
+  Future<void> markPromptedToday(String version) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('update_prompt_date', _todayKey());
     await prefs.setString('update_prompt_version', version);
@@ -153,7 +153,7 @@ class UpdateService {
     if (!context.mounted) return;
     // Marca já na exibição: assim só aparece uma vez por dia, mesmo que o app
     // seja fechado em seguida — e volta a aparecer amanhã se não atualizar.
-    await _markPromptedToday(update.versionName);
+    await markPromptedToday(update.versionName);
     if (!context.mounted) return;
     await showDialog<void>(
       context: context,
