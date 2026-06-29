@@ -8,6 +8,7 @@ import '../utils/currency.dart';
 import 'add_transaction_screen.dart';
 import 'transactions_list_screen.dart';
 import 'about_screen.dart';
+import 'donation_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -125,6 +126,17 @@ class _HomeScreenState extends State<HomeScreen> {
         title: const Text('Lucro do Dia'),
         actions: [
           IconButton(
+            tooltip: 'Apoiar o app',
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const DonationScreen()),
+              );
+            },
+            icon: const Icon(Icons.favorite_outline),
+            color: const Color(0xFFD81B60),
+          ),
+          IconButton(
             tooltip: 'Sobre',
             onPressed: () {
               Navigator.push(
@@ -240,6 +252,15 @@ class _HomeScreenState extends State<HomeScreen> {
                       style: Theme.of(context).textTheme.bodySmall,
                     ),
                   ],
+                  const SizedBox(height: 20),
+                  _SupportCard(
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const DonationScreen(),
+                      ),
+                    ),
+                  ),
                   const SizedBox(height: 24),
                 ],
               ),
@@ -264,6 +285,49 @@ class _HomeScreenState extends State<HomeScreen> {
             await _refresh();
           }
         },
+      ),
+    );
+  }
+}
+
+class _SupportCard extends StatelessWidget {
+  const _SupportCard({required this.onTap});
+
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      clipBehavior: Clip.antiAlias,
+      color: const Color(0xFFFFF1F4),
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            children: [
+              const Icon(Icons.favorite, color: Color(0xFFD81B60), size: 30),
+              const SizedBox(width: 14),
+              const Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Gostou do app? Apoie com um Pix 💚',
+                      style: TextStyle(fontWeight: FontWeight.w700),
+                    ),
+                    SizedBox(height: 2),
+                    Text(
+                      'Gratuito e sem propaganda. Qualquer valor ajuda.',
+                      style: TextStyle(fontSize: 12, color: Colors.black54),
+                    ),
+                  ],
+                ),
+              ),
+              const Icon(Icons.chevron_right, color: Colors.black38),
+            ],
+          ),
+        ),
       ),
     );
   }

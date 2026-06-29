@@ -32,9 +32,11 @@ A **única** conexão com a internet é opcional: verificar se existe uma versã
 Ao abrir com internet, o app consulta a API pública de releases do GitHub
 (`/repos/abobicaduco/lucro-dia/releases/latest`). Se a última versão publicada for mais
 nova que a instalada, o usuário vê um diálogo e **escolhe** se quer atualizar ("Atualizar"
-baixa o APK; "Agora não" adia aquela versão). O app escolhe automaticamente o APK que
-combina com a arquitetura do aparelho (arm64-v8a, armeabi-v7a, x86_64) e, se não achar,
-usa o universal.
+baixa o APK; "Agora não" adia). O app escolhe automaticamente o APK que combina com a
+arquitetura do aparelho (arm64-v8a, armeabi-v7a, x86_64) e, se não achar, usa o universal.
+
+O lembrete aparece **no máximo uma vez por dia, mas volta todo dia** até a pessoa
+atualizar — sem incomodar a cada abertura.
 
 ### Como publicar uma nova versão
 

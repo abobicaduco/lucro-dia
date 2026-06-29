@@ -32,6 +32,10 @@ void main() {
 
   test('database insert and summary', () async {
     final month = DateTime(2026, 6);
+    // O banco de teste (ffi) persiste entre execuções; limpa o mês antes.
+    for (final t in await DatabaseService.instance.listForMonth(month)) {
+      if (t.id != null) await DatabaseService.instance.delete(t.id!);
+    }
     await DatabaseService.instance.insert(
       Transaction(
         type: TransactionType.sale,

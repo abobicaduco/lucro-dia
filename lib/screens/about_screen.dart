@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:package_info_plus/package_info_plus.dart';
-import 'package:qr_flutter/qr_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import '../utils/pix.dart';
+import '../widgets/pix_donation_card.dart';
 
 class AboutScreen extends StatefulWidget {
   const AboutScreen({super.key});
@@ -56,7 +55,6 @@ class _AboutScreenState extends State<AboutScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final pixCode = Pix.copiaECola();
     return Scaffold(
       appBar: AppBar(title: const Text('Sobre')),
       body: ListView(
@@ -125,55 +123,7 @@ class _AboutScreenState extends State<AboutScreen> {
           _Secao(
             icon: Icons.favorite_outline,
             titulo: 'Apoie com um Pix',
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Este app é gratuito e sem propaganda. Se ele te ajudou e você '
-                  'quiser contribuir, qualquer valor é bem-vindo — você escolhe '
-                  'quanto. Obrigado! 💚',
-                  style: TextStyle(height: 1.5),
-                ),
-                const SizedBox(height: 16),
-                Center(
-                  child: Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.black12),
-                    ),
-                    child: QrImageView(
-                      data: pixCode,
-                      version: QrVersions.auto,
-                      size: 200,
-                      backgroundColor: Colors.white,
-                      errorStateBuilder: (context, error) => const SizedBox(
-                        width: 200,
-                        height: 200,
-                        child: Center(child: Text('Não foi possível gerar o QR')),
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                _LinhaCopiavel(
-                  rotulo: 'Chave Pix (e-mail)',
-                  valor: Pix.chave,
-                  onCopiar: () => _copy(Pix.chave, 'Chave Pix copiada'),
-                ),
-                const SizedBox(height: 8),
-                SizedBox(
-                  width: double.infinity,
-                  child: FilledButton.icon(
-                    onPressed: () =>
-                        _copy(pixCode, 'Código Pix copiado — cole no seu banco'),
-                    icon: const Icon(Icons.copy),
-                    label: const Text('Copiar Pix copia e cola'),
-                  ),
-                ),
-              ],
-            ),
+            child: const PixDonationCard(),
           ),
 
           // Contato

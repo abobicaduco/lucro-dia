@@ -53,9 +53,9 @@ class UpdateService {
       // Só oferece se a versão publicada for realmente mais nova.
       if (compareVersions(remoteVersion, currentVersion) <= 0) return null;
 
-      // Usuário pediu para pular esta versão?
-      final prefs = await SharedPreferences.getInstance();
-      if (prefs.getString('skipped_version') == remoteVersion) return null;
+      // Lembrete no máximo uma vez por dia — mas todo dia, até a pessoa
+      // atualizar. Se já mostramos hoje para esta versão, não repete.
+      if (await _alreadyPromptedToday(remoteVersion)) return null;
 
       final assets = (json['assets'] as List<dynamic>? ?? [])
           .cast<Map<String, dynamic>>();
@@ -120,12 +120,40 @@ class UpdateService {
     return 0;
   }
 
-  Future<void> skipVersion(String versionName) async {
+  /// Já avisamos hoje sobre esta versão?
+  Future<bool> _alreadyPromptedToday(String version) async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('skipped_version', versionName);
+    return prefs.getString('update_prompt_date') == _todayKey() &&
+        prefs.getString('update_prompt_version') == version;
+  }
+
+  /// Registra que o aviso desta versão foi mostrado hoje.
+  Future<void> _markPromptedToday(String version) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('update_prompt_date', _todayKey());
+    await prefs.setString('update_prompt_version', version);
+  }
+
+  String _todayKey() {
+    final n = DateTime.now();
+    return '${n.year}-${n.month}-${n.day}';
+  }
+
+  /// Pega só a parte amigável das notas (antes do changelog automático do
+  /// GitHub, que começa com um cabeçalho "## ..."), com tamanho limitado.
+  String _shortNotes(String notes) {
+    var text = notes.trim();
+    final header = text.indexOf(RegExp(r'^#{1,6}\s', multiLine: true));
+    if (header > 0) text = text.substring(0, header).trim();
+    if (text.length > 240) text = '${text.substring(0, 240).trim()}…';
+    return text;
   }
 
   Future<void> showUpdateDialog(BuildContext context, UpdateInfo update) async {
+    if (!context.mounted) return;
+    // Marca já na exibição: assim só aparece uma vez por dia, mesmo que o app
+    // seja fechado em seguida — e volta a aparecer amanhã se não atualizar.
+    await _markPromptedToday(update.versionName);
     if (!context.mounted) return;
     await showDialog<void>(
       context: context,
@@ -138,17 +166,19 @@ class UpdateService {
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                'A versão ${update.versionName} está disponível.',
+                'Saiu a versão ${update.versionName} do Lucro do Dia. '
+                'Você quer atualizar agora?',
                 style: const TextStyle(fontWeight: FontWeight.w600),
               ),
-              if (update.releaseNotes.isNotEmpty) ...[
+              if (_shortNotes(update.releaseNotes).isNotEmpty) ...[
                 const SizedBox(height: 12),
-                Text(update.releaseNotes),
+                Text(_shortNotes(update.releaseNotes)),
               ],
               const SizedBox(height: 12),
               const Text(
                 'Seus registros ficam só no celular. A atualização baixa o app '
-                'novo; seus dados não são enviados para ninguém.',
+                'novo; seus dados não são enviados para ninguém.\n\n'
+                'Se escolher "Agora não", a gente te lembra de novo amanhã.',
                 style: TextStyle(fontSize: 13, color: Colors.black54),
               ),
             ],
@@ -156,10 +186,7 @@ class UpdateService {
         ),
         actions: [
           TextButton(
-            onPressed: () async {
-              await skipVersion(update.versionName);
-              if (ctx.mounted) Navigator.pop(ctx);
-            },
+            onPressed: () => Navigator.pop(ctx),
             child: const Text('Agora não'),
           ),
           FilledButton(
