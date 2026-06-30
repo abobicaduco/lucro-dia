@@ -1,5 +1,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <uses-permission android:name="android.permission.INTERNET" />
+    <!-- AdMob: identificador de publicidade (Android 13+). Declarado na Data Safety do Play. -->
+    <uses-permission android:name="com.google.android.gms.permission.AD_ID" />
     <application
         android:label="Lucro do Dia"
         android:name="${applicationName}"
@@ -25,6 +27,12 @@
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
+        <!-- AdMob App ID. Este é o ID de TESTE oficial do Google.
+             TODO(produção): trocar pelo App ID real (AdMob > App > App ID)
+             ANTES de promover para produção. -->
+        <meta-data
+            android:name="com.google.android.gms.ads.APPLICATION_ID"
+            android:value="ca-app-pub-3940256099942544~3347511713" />
     </application>
     <queries>
         <intent>

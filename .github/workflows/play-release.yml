@@ -1,0 +1,68 @@
+name: Play AAB (closed testing)
+
+# Gera o Android App Bundle (.aab) ASSINADO para subir na Google Play.
+# Rodar manualmente: aba Actions > "Play AAB (closed testing)" > Run workflow.
+# O .aab fica como artifact do run (baixe e suba em Testes > Teste fechado).
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'versionName (ex: 1.0.1). Vazio = usa o do pubspec.yaml'
+        required: false
+
+permissions:
+  contents: read
+
+jobs:
+  bundle:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Restore signing keystore
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+        run: |
+          echo "$KEYSTORE_BASE64" | base64 -d > android/app/lucro_dia-release.jks
+          cat > android/key.properties <<EOF
+          storePassword=$KEYSTORE_PASSWORD
+          keyPassword=$KEYSTORE_PASSWORD
+          keyAlias=$KEY_ALIAS
+          storeFile=lucro_dia-release.jks
+          EOF
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Build signed AAB (Play flavor)
+        run: flutter build appbundle --release --dart-define=DISTRO=play
+
+      - name: Rename AAB
+        run: |
+          V="${{ github.event.inputs.version }}"
+          [ -z "$V" ] && V="$(grep '^version:' pubspec.yaml | sed 's/version:[[:space:]]*//' | cut -d'+' -f1)"
+          mkdir -p dist
+          cp build/app/outputs/bundle/release/app-release.aab "dist/lucro-dia-$V-play.aab"
+          ls -la dist
+
+      - name: Upload AAB artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: lucro-dia-play-aab
+          path: dist/*.aab
+          retention-days: 14

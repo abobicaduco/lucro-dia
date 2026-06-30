@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
+import '../config/build_config.dart';
 import '../models/transaction.dart';
+import '../services/ads_service.dart';
 import '../services/database_service.dart';
 import '../services/update_service.dart';
 import '../utils/currency.dart';
@@ -26,7 +28,9 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     _refresh();
-    _checkUpdate();
+    // Auto-update OTA só no build do GitHub. Na Play é proibido baixar APK
+    // de fora da loja, então a checagem nem roda.
+    if (BuildConfig.selfUpdateEnabled) _checkUpdate();
   }
 
   Future<void> _checkUpdate() async {
@@ -265,26 +269,32 @@ class _HomeScreenState extends State<HomeScreen> {
                 ],
               ),
             ),
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: 0,
-        destinations: const [
-          NavigationDestination(icon: Icon(Icons.home_outlined), label: 'Início'),
-          NavigationDestination(icon: Icon(Icons.add_circle_outline), label: 'Registrar'),
-          NavigationDestination(icon: Icon(Icons.list_alt), label: 'Histórico'),
+      bottomNavigationBar: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const BannerAdView(),
+          NavigationBar(
+            selectedIndex: 0,
+            destinations: const [
+              NavigationDestination(icon: Icon(Icons.home_outlined), label: 'Início'),
+              NavigationDestination(icon: Icon(Icons.add_circle_outline), label: 'Registrar'),
+              NavigationDestination(icon: Icon(Icons.list_alt), label: 'Histórico'),
+            ],
+            onDestinationSelected: (i) async {
+              if (i == 1) {
+                await _showRegisterSheet();
+              } else if (i == 2) {
+                await Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => TransactionsListScreen(month: _month),
+                  ),
+                );
+                await _refresh();
+              }
+            },
+          ),
         ],
-        onDestinationSelected: (i) async {
-          if (i == 1) {
-            await _showRegisterSheet();
-          } else if (i == 2) {
-            await Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => TransactionsListScreen(month: _month),
-              ),
-            );
-            await _refresh();
-          }
-        },
       ),
     );
   }
@@ -318,7 +328,9 @@ class _SupportCard extends StatelessWidget {
                     ),
                     SizedBox(height: 2),
                     Text(
-                      'Gratuito e sem propaganda. Qualquer valor ajuda.',
+                      BuildConfig.adsEnabled
+                          ? 'App gratuito. Qualquer valor ajuda a manter o projeto.'
+                          : 'Gratuito e sem propaganda. Qualquer valor ajuda.',
                       style: TextStyle(fontSize: 12, color: Colors.black54),
                     ),
                   ],
