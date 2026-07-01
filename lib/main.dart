@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
+import 'config/app_mode.dart';
 import 'screens/home_screen.dart';
 import 'services/ads_service.dart';
 
-void main() {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  // Carrega o modo de uso (comércio/pessoal) antes de desenhar a tela.
+  await AppModeStore.load();
   // No build da Play inicializa o AdMob; no build do GitHub é no-op.
   AdsService.instance.init();
   runApp(const LucroDiaApp());

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
+import '../config/app_mode.dart';
 import '../models/transaction.dart';
 import '../services/database_service.dart';
 import '../utils/currency.dart';
@@ -111,7 +112,9 @@ class _TransactionsListScreenState extends State<TransactionsListScreen> {
                           ),
                         ),
                         title: Text(
-                          tx.isSale ? 'Venda' : 'Compra',
+                          tx.isSale
+                              ? AppModeStore.labels.incomeShort
+                              : AppModeStore.labels.expenseShort,
                           style: const TextStyle(fontWeight: FontWeight.w600),
                         ),
                         subtitle: Text(

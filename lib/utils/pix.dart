@@ -5,7 +5,7 @@ import 'dart:convert';
 /// Sem valor definido: quem doa escolhe quanto enviar. Nenhuma informação é
 /// transmitida pelo app — o código é montado localmente no aparelho.
 class Pix {
-  static const String chave = 'abobicarlo@gmail.com';
+  static const String chave = 'f74458dc-2a36-49bd-9250-1cef4365ebb8';
   static const String recebedor = 'CARLOS EDUARDO';
   static const String cidade = 'MOGI DAS CRUZES';
 

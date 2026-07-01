@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
+import '../config/app_mode.dart';
 import '../config/build_config.dart';
 import '../models/transaction.dart';
 import '../services/ads_service.dart';
@@ -28,9 +29,54 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     _refresh();
+    // Primeira execução: pergunta se o uso é comércio ou pessoal.
+    if (!AppModeStore.chosen) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _chooseMode());
+    }
     // Auto-update OTA só no build do GitHub. Na Play é proibido baixar APK
     // de fora da loja, então a checagem nem roda.
     if (BuildConfig.selfUpdateEnabled) _checkUpdate();
+  }
+
+  Future<void> _chooseMode() async {
+    final mode = await showDialog<AppMode>(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Como você vai usar o app?'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text(
+              'Você pode trocar depois na tela "Sobre".',
+              style: TextStyle(color: Colors.black54),
+            ),
+            const SizedBox(height: 16),
+            FilledButton.icon(
+              onPressed: () => Navigator.pop(ctx, AppMode.comercio),
+              icon: const Icon(Icons.storefront),
+              label: const Text('Tenho um comércio (vendas e compras)'),
+              style: FilledButton.styleFrom(
+                minimumSize: const Size.fromHeight(52),
+              ),
+            ),
+            const SizedBox(height: 10),
+            OutlinedButton.icon(
+              onPressed: () => Navigator.pop(ctx, AppMode.pessoal),
+              icon: const Icon(Icons.person),
+              label: const Text('Finanças pessoais (entradas e gastos)'),
+              style: OutlinedButton.styleFrom(
+                minimumSize: const Size.fromHeight(52),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+    if (mode != null) {
+      await AppModeStore.set(mode);
+      if (mounted) setState(() {});
+    }
   }
 
   Future<void> _checkUpdate() async {
@@ -96,7 +142,7 @@ class _HomeScreenState extends State<HomeScreen> {
               FilledButton.icon(
                 onPressed: () => Navigator.pop(ctx, TransactionType.sale),
                 icon: const Icon(Icons.arrow_upward),
-                label: const Text('Registrar venda (entrou dinheiro)'),
+                label: Text(AppModeStore.labels.registerIncomeBtn),
                 style: FilledButton.styleFrom(
                   backgroundColor: Colors.green.shade600,
                   minimumSize: const Size.fromHeight(52),
@@ -106,7 +152,7 @@ class _HomeScreenState extends State<HomeScreen> {
               FilledButton.icon(
                 onPressed: () => Navigator.pop(ctx, TransactionType.purchase),
                 icon: const Icon(Icons.arrow_downward),
-                label: const Text('Registrar compra (saiu dinheiro)'),
+                label: Text(AppModeStore.labels.registerExpenseBtn),
                 style: FilledButton.styleFrom(
                   backgroundColor: Colors.red.shade600,
                   minimumSize: const Size.fromHeight(52),
@@ -124,6 +170,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     final monthLabel = DateFormat('MMMM yyyy', 'pt_BR').format(_month);
     final s = _summary;
+    final l = AppModeStore.labels;
 
     return Scaffold(
       appBar: AppBar(
@@ -142,11 +189,13 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           IconButton(
             tooltip: 'Sobre',
-            onPressed: () {
-              Navigator.push(
+            onPressed: () async {
+              await Navigator.push(
                 context,
                 MaterialPageRoute(builder: (_) => const AboutScreen()),
               );
+              // O modo de uso pode ter mudado na tela Sobre.
+              if (mounted) setState(() {});
             },
             icon: const Icon(Icons.info_outline),
           ),
@@ -182,11 +231,11 @@ class _HomeScreenState extends State<HomeScreen> {
                     _StatusBanner(summary: s),
                     const SizedBox(height: 16),
                     _BigCard(
-                      title: 'Lucro do mês',
+                      title: l.monthResultTitle,
                       value: formatCents(s.balanceCents),
                       subtitle: s.isProfit
-                          ? 'Você está lucrando neste mês'
-                          : 'Você está no prejuízo neste mês',
+                          ? l.positiveSubtitle
+                          : l.negativeSubtitle,
                       color: s.isProfit ? Colors.green : Colors.red,
                       icon: s.isProfit ? Icons.trending_up : Icons.trending_down,
                     ),
@@ -195,7 +244,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       children: [
                         Expanded(
                           child: _MiniCard(
-                            title: 'Vendas',
+                            title: l.incomeCard,
                             value: formatCents(s.salesCents),
                             color: Colors.green,
                             icon: Icons.arrow_upward,
@@ -204,7 +253,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         const SizedBox(width: 12),
                         Expanded(
                           child: _MiniCard(
-                            title: 'Compras',
+                            title: l.expenseCard,
                             value: formatCents(s.purchasesCents),
                             color: Colors.red,
                             icon: Icons.arrow_downward,
@@ -226,13 +275,13 @@ class _HomeScreenState extends State<HomeScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             _LineRow(
-                              label: 'Vendas até hoje',
+                              label: l.incomeUntilToday,
                               value: formatCents(s.salesUntilTodayCents),
                               color: Colors.green,
                             ),
                             const Divider(height: 20),
                             _LineRow(
-                              label: 'Gastos até hoje',
+                              label: l.expenseUntilToday,
                               value: formatCents(s.purchasesUntilTodayCents),
                               color: Colors.red,
                             ),
@@ -411,8 +460,8 @@ class _StatusBanner extends StatelessWidget {
           Expanded(
             child: Text(
               profit
-                  ? 'Parabéns! Suas vendas estão maiores que suas compras.'
-                  : 'Atenção: você gastou mais do que vendeu neste mês.',
+                  ? AppModeStore.labels.bannerPositive
+                  : AppModeStore.labels.bannerNegative,
               style: TextStyle(
                 fontWeight: FontWeight.w600,
                 color: profit ? Colors.green.shade900 : Colors.red.shade900,

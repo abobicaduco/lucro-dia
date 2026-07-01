@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
+import '../config/app_mode.dart';
 import '../models/transaction.dart';
 import '../utils/currency.dart';
 
@@ -92,16 +93,16 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
             ),
             const SizedBox(height: 12),
             SegmentedButton<TransactionType>(
-              segments: const [
+              segments: [
                 ButtonSegment(
                   value: TransactionType.sale,
-                  label: Text('Venda'),
-                  icon: Icon(Icons.arrow_upward),
+                  label: Text(AppModeStore.labels.incomeShort),
+                  icon: const Icon(Icons.arrow_upward),
                 ),
                 ButtonSegment(
                   value: TransactionType.purchase,
-                  label: Text('Compra'),
-                  icon: Icon(Icons.arrow_downward),
+                  label: Text(AppModeStore.labels.expenseShort),
+                  icon: const Icon(Icons.arrow_downward),
                 ),
               ],
               selected: {_type},
@@ -131,10 +132,10 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
             const SizedBox(height: 8),
             TextFormField(
               controller: _descCtrl,
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 labelText: 'Descrição (opcional)',
-                hintText: 'Ex: venda de brigadeiro',
-                border: OutlineInputBorder(),
+                hintText: AppModeStore.labels.descHint,
+                border: const OutlineInputBorder(),
               ),
               maxLines: 2,
             ),

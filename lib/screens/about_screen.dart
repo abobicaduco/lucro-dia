@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../config/app_mode.dart';
 import '../widgets/pix_donation_card.dart';
 
 class AboutScreen extends StatefulWidget {
@@ -95,13 +96,46 @@ class _AboutScreenState extends State<AboutScreen> {
           _Secao(
             icon: Icons.info_outline,
             titulo: 'Sobre o app',
-            child: const Text(
-              'O Lucro do Dia ajuda você a registrar suas vendas e compras do dia '
-              'a dia e entender, sem complicação, se está lucrando ou no prejuízo '
-              'no mês.\n\n'
-              'Foi feito para ser simples: você anota quanto entrou e quanto saiu, '
-              'e o app mostra na hora o seu resultado, em palavras fáceis.',
-              style: TextStyle(height: 1.5),
+            child: Text(
+              AppModeStore.labels.aboutText,
+              style: const TextStyle(height: 1.5),
+            ),
+          ),
+
+          // Modo de uso (comércio x pessoal)
+          _Secao(
+            icon: Icons.tune,
+            titulo: 'Modo de uso',
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Escolha como o app fala com você. Isso muda só os nomes '
+                  '(venda/compra ou entrada/gasto); seus registros continuam os '
+                  'mesmos.',
+                  style: TextStyle(height: 1.5),
+                ),
+                const SizedBox(height: 12),
+                SegmentedButton<AppMode>(
+                  segments: const [
+                    ButtonSegment(
+                      value: AppMode.comercio,
+                      label: Text('Comércio'),
+                      icon: Icon(Icons.storefront),
+                    ),
+                    ButtonSegment(
+                      value: AppMode.pessoal,
+                      label: Text('Pessoal'),
+                      icon: Icon(Icons.person),
+                    ),
+                  ],
+                  selected: {AppModeStore.mode},
+                  onSelectionChanged: (s) async {
+                    await AppModeStore.set(s.first);
+                    if (mounted) setState(() {});
+                  },
+                ),
+              ],
             ),
           ),
 

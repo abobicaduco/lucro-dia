@@ -77,7 +77,7 @@ class PixDonationCard extends StatelessWidget {
         ),
         const SizedBox(height: 16),
         _CopyRow(
-          rotulo: 'Chave Pix (e-mail)',
+          rotulo: 'Chave Pix (aleatória)',
           valor: Pix.chave,
           onTap: () => _copy(context, Pix.chave, 'Chave Pix copiada'),
         ),
