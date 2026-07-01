@@ -1,79 +1,92 @@
-# Lucro do Dia
+# 💰 Lucro do Dia
 
-App de finanças simples para quem vende e compra no dia a dia (feirantes, doceiras,
-revendedores, autônomos) registrar movimentações e entender, sem complicação, se está
-**lucrando** ou no **prejuízo** no mês.
+**App Android gratuito para saber, sem complicação, se você está no lucro ou no prejuízo.**
 
-Feito em Flutter, funciona em Android **7.0+** (aparelhos antigos e recentes).
+Feito para quem lida com dinheiro todo dia: dono de comércio (feirante, MEI,
+revendedor, autônomo) **ou** qualquer pessoa que queira organizar as finanças
+pessoais. Você anota o que entrou e o que saiu, e o app responde na hora.
 
-## O que o app faz
+Funciona **offline**, sem cadastro e sem nuvem. Seus dados ficam **só no seu
+celular**. Roda em **Android 7.0 ou superior**.
 
-- **Registrar venda** (entrou dinheiro) e **compra** (saiu dinheiro) com valor, data e
-  descrição opcional — linguagem para leigos, sem jargão financeiro.
-- **Resumo do mês**: total de vendas, total de compras e o lucro/prejuízo, com uma frase
-  clara ("Você está lucrando" / "Você está no prejuízo neste mês").
-- **Até hoje**: quanto vendeu, quanto gastou e o saldo até a data atual.
-- **Histórico**: lista de todos os registros do mês. Toque para editar, segure para apagar.
-- **Navegação por meses**: veja o resultado de qualquer mês.
-- **Tela Sobre**: explicação do app, privacidade, **doações via Pix** (chave, copia e cola
-  e QR Code gerados no próprio aparelho) e **contato** por e-mail para sugestões/ajuda.
+<!-- Sugestão: adicionar aqui um print da tela inicial e do carrossel de telas. -->
 
-## Privacidade — dados 100% locais
+---
 
-Todos os registros ficam **apenas no celular** do usuário, num banco SQLite
-(`lucro_dia_local.db`). Não há login, conta, nuvem nem analytics. Nenhum dado financeiro
-é enviado para o desenvolvedor ou para qualquer servidor.
+## ✨ O que o app faz
 
-A **única** conexão com a internet é opcional: verificar se existe uma versão nova do app
-(somente número de versão + link do APK). Nada do usuário é transmitido.
+- **Dois modos de uso** (você escolhe ao abrir, e pode trocar depois):
+  - 🏪 **Comércio** — registra *vendas* e *compras* e mostra o **lucro do mês**.
+  - 👤 **Pessoal** — registra *entradas* e *gastos* e mostra o **saldo do mês**.
+- Resposta na hora, em palavras simples: "Você está lucrando" / "Você está no
+  prejuízo" (ou "no positivo" / "no negativo").
+- Resumo do mês, do "até hoje" e histórico completo (editar e apagar registros).
+- Navegue por qualquer mês para comparar.
+- **100% offline**, sem login, sem propaganda invasiva.
 
-## Atualizações (OTA via GitHub Releases)
+## 📥 Como baixar e instalar (passo a passo)
 
-Ao abrir com internet, o app consulta a API pública de releases do GitHub
-(`/repos/abobicaduco/lucro-dia/releases/latest`). Se a última versão publicada for mais
-nova que a instalada, o usuário vê um diálogo e **escolhe** se quer atualizar ("Atualizar"
-baixa o APK; "Agora não" adia). O app escolhe automaticamente o APK que combina com a
-arquitetura do aparelho (arm64-v8a, armeabi-v7a, x86_64) e, se não achar, usa o universal.
+1. Abra a página de **[Releases](../../releases/latest)** no celular.
+2. Baixe o arquivo que termina em **`.apk`** (o `universal` funciona em qualquer
+   aparelho).
+3. Toque no arquivo baixado e, se pedir, permita **"instalar de fontes
+   desconhecidas"**.
+4. Pronto! Abra o app e escolha se vai usar para *comércio* ou *finanças
+   pessoais*.
 
-O lembrete aparece **no máximo uma vez por dia, mas volta todo dia** até a pessoa
-atualizar — sem incomodar a cada abertura.
+> 📱 Também será publicado na **Google Play** em breve.
 
-### Como publicar uma nova versão
+## 🔄 Atualizações
 
-1. Suba `version:` em [`pubspec.yaml`](pubspec.yaml) (ex.: `1.0.1+2`).
-2. Crie e envie a tag correspondente:
-   ```bash
-   git tag v1.0.1 && git push origin v1.0.1
-   ```
-3. O workflow [`.github/workflows/release.yml`](.github/workflows/release.yml) compila os
-   APKs (arm64-v8a, armeabi-v7a, x86_64 e universal), **assina com a chave de release** e
-   cria a Release no GitHub com os arquivos anexados.
-4. Pronto: quem tem o app instalado recebe o aviso de atualização ao abrir com internet.
+O próprio app **avisa quando sai uma versão nova** (no máximo uma vez por dia, até
+você atualizar) e baixa o APK certo para o seu aparelho. Nada dos seus dados é
+enviado nesse processo.
 
-> **Assinatura:** todos os APKs são assinados com o mesmo keystore (guardado fora do repo,
-> nos secrets do GitHub `KEYSTORE_BASE64` / `KEYSTORE_PASSWORD` / `KEY_ALIAS`). Isso é o que
-> permite a atualização instalar por cima da versão anterior.
+## 🔒 Privacidade
 
-## Build
+Todos os registros ficam **apenas no seu celular** (banco local SQLite). Não há
+login, conta, nuvem nem coleta de dados financeiros. A versão da Play Store exibe
+anúncios (Google AdMob), que usam o identificador de publicidade do aparelho —
+detalhes na [Política de Privacidade](PRIVACIDADE.md).
+
+---
+
+## 🛠️ Para desenvolvedores
+
+App **Flutter** (Android), pensado para ser simples de manter e fácil de publicar.
+
+**Stack:** Flutter · Dart · SQLite (`sqflite`) · Material 3 · GitHub Actions (CI).
+
+**Destaques de arquitetura:**
+- **Dados 100% locais** em SQLite (`services/database_service.dart`), sem backend.
+- **Modo de uso** (comércio/pessoal) via `config/app_mode.dart`: um único conjunto
+  de `Labels` troca toda a terminologia sem mexer no modelo de dados.
+- **Flag de build** (`--dart-define=DISTRO=play`) que liga o AdMob e desliga a
+  auto-atualização OTA na versão da Play (política da loja), mantendo a versão do
+  GitHub com anúncios desligados e OTA ativo.
+- **CI que assina e publica:** ao enviar uma tag `v*`, o GitHub Actions compila os
+  APKs por arquitetura, assina com o keystore de release (via *secrets*) e cria a
+  Release automaticamente.
 
 ```bash
 flutter pub get
-flutter build apk --release   # build/app/outputs/flutter-apk/app-release.apk
+flutter build apk --release                         # versão do GitHub
+flutter build appbundle --release --dart-define=DISTRO=play   # versão da Play
 ```
 
-## Estrutura
-
+**Estrutura:**
 ```
 lib/
-  main.dart                       # app + tema + localização pt_BR
-  models/transaction.dart         # modelo de transação e resumo do mês
-  services/database_service.dart  # SQLite local (CRUD + cálculo do resumo)
-  services/update_service.dart    # checagem opcional de versão nova
-  screens/                        # home, registrar, histórico, privacidade
-  utils/currency.dart             # formatação e parsing de R$
+  main.dart                     # app, tema, localização pt_BR
+  config/app_mode.dart          # modos comércio/pessoal + textos
+  config/build_config.dart      # flags de distribuição (ads, OTA)
+  models/transaction.dart       # transação e resumo do mês
+  services/database_service.dart# SQLite local (CRUD + cálculo do resumo)
+  services/ads_service.dart     # AdMob (só na versão da Play)
+  services/update_service.dart  # checagem opcional de nova versão
+  screens/                      # início, registrar, histórico, sobre, doação
 ```
 
-## Privacidade legal
+## 📄 Licença
 
-O app não coleta dados pessoais. Por isso o desenvolvedor fica isento de obrigações de
-tratamento de dados (LGPD) — não há dado do usuário sob sua guarda.
+MIT © 2026 Carlos Eduardo (@abobicaduco)
