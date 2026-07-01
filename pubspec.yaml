@@ -1,7 +1,7 @@
 name: lucro_dia
 description: Registre vendas e compras do dia a dia e veja se está lucrando — dados só no seu celular.
 publish_to: 'none'
-version: 1.0.1+2
+version: 1.0.2+3
 
 environment:
   sdk: ^3.12.2
